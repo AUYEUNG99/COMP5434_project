@@ -37,8 +37,7 @@ class DataProcess:
         """
         header_str=self.df.columns.tolist()+['city','district','zip code']
         # for each row in 'date' attribute, split the string and get the second value(as integer) which is month
-        self.df['date'] = self.df['date'].apply(lambda x: int(x.split('/')[1]))
-
+        #self.df['date'] = self.df['date'].apply(lambda x: int(x.split('/')[1]))
         le = preprocessing.LabelEncoder()
         self.cities = le.fit_transform(self.cities).reshape(4000,1)
         self.district= le.fit_transform(self.district).reshape(4000,1)
@@ -57,7 +56,9 @@ class DataProcess:
 
         self.labels = self.total_cost.apply(lambda x: classify(x))
         self.labels = self.labels.to_numpy(dtype=np.int)
-        self.attrs = np.hstack((self.df,self.cities, self.district, self.zip_code))
+        self.label = self.labels.reshape(4000,1)
+        #self.labels = preprocessing.normalize(self.labels, axis=0)
+        self.attrs = np.hstack((self.df,self.cities,self.district,self.zip_code))#, self.district, self.zip_code))
         
         """
         it may not be as good as we think. because all values are too small
@@ -67,7 +68,11 @@ class DataProcess:
         self.attrs = pd.DataFrame(self.attrs,columns=header_str)
         self.attrs.to_csv('./train_attrs.csv',header=header_str,index=False)
         self.labels = pd.DataFrame(self.labels,columns=['labels'])
-        self.labels.to_csv('./train_labels.csv',header=['labels'])
+        self.labels.to_csv('./train_labels.csv',header=['labels'],index=False)
+        
+        self.train = np.hstack((self.attrs,self.label ))
+        self.train = pd.DataFrame(self.train,columns=header_str+['labels'])
+        self.train.to_csv('./train.csv',header=header_str+['labels'],index=False)
     def getdata(self):
         """
         :return:  Normalized training data, city attribute which needs to be embedded, labels
@@ -75,4 +80,4 @@ class DataProcess:
         self.read_data()
         self.filter()
         self.encode()
-        return self.attrs, self.labels
+        return self.attrs, self.labels, self.train
