@@ -73,7 +73,7 @@ class CSVDataset():
 #test_dataset = CSVDataset('./train.csv')
 dataset=CSVDataset('./train.csv')
 import torch.utils.data as Data
-train_dataset, test_dataset = Data.random_split(dataset, [3600, 400])
+train_dataset, test_dataset = Data.random_split(dataset, [3200, 800])
 print(train_dataset)
 trainloader = DataLoader(dataset=train_dataset, batch_size=100,  shuffle=False) 
 testloader = DataLoader(dataset=test_dataset, batch_size=8,  shuffle=False)
@@ -194,8 +194,8 @@ class MLPNet(nn.Module):
         return x
 
 import torch.optim as optim
-#net = Net().to(device)
-net = torch.load('net.pkl')
+net = Net().to(device)
+#net = torch.load('net.pkl')
 # Use the cross entropy loss function
 criterion = nn.CrossEntropyLoss()
 #criterion=nn.BCELoss()
