@@ -8,6 +8,7 @@ class DataProcess:
         self.data = None
         self.df = None
         self.cities = None
+        self.zipcodes = None
         self.labels = None
         self.total_cost = None
         self.fp = filepath
@@ -23,6 +24,7 @@ class DataProcess:
         :return:
         """
         self.cities = self.df["city"]
+        self.zipcodes = self.df['zip code']
         self.total_cost = self.df['total cost']
         self.df = self.df.drop(columns=self.unused)
 
@@ -36,10 +38,14 @@ class DataProcess:
         """
 
         # for each row in 'date' attribute, split the string and get the second value(as integer) which is month
-        self.df['date'] = self.df['date'].apply(lambda x: int(x.split('/')[1]))
+        if 'date' in self.df.columns:
+          self.df['date'] = self.df['date'].apply(lambda x: int(x.split('/')[1]))
+          # self.df['Month'] = self.df['date'].apply(lambda x: int(x.split('/')[1]))
+          # self.df.drop(columns=['date'])
 
         le = preprocessing.LabelEncoder()
         self.cities = le.fit_transform(self.cities)
+        self.zipcodes = le.fit_transform(self.zipcodes)
 
         def classify(totalCost):
             if totalCost < 300000:
@@ -52,7 +58,7 @@ class DataProcess:
                 return 4
 
         self.labels = self.total_cost.apply(lambda x: classify(x))
-        self.labels = self.labels.to_numpy(dtype=np.int)
+        self.labels = self.labels.to_numpy(dtype=np.int32)
         self.labels -= 1
 
         self.data = self.df.to_numpy()
@@ -70,4 +76,4 @@ class DataProcess:
         self.read_data()
         self.filter()
         self.encode(normalize)
-        return self.data, self.cities, self.labels
+        return self.data, self.cities, self.zipcodes, self.labels
