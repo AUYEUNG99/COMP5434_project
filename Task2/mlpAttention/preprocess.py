@@ -53,6 +53,7 @@ class DataProcess:
 
         self.labels = self.total_cost.apply(lambda x: classify(x))
         self.labels = self.labels.to_numpy(dtype=np.int)
+        self.labels -= 1
 
         self.data = self.df.to_numpy()
         """
