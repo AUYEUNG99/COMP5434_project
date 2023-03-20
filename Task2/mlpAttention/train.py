@@ -52,12 +52,9 @@ def eval(model, testloader):
             y = y.to(device)
             z = z.to(device)
             predict = model(x, y)  # [Batch, sequence_len, classes]
-            for j in range(x.shape[0]):
-                totalNum += x.shape[1]
-                batch_pred, batch_gt = predict[j], z[j]
-                predicted = torch.argmax(batch_pred, dim=-1)
-                sum = torch.sum(predicted == batch_gt)
-                correctNum += sum
+            totalNum += x.shape[0] * x.shape[1]
+            predict = torch.argmax(predict, dim=-1)
+            correctNum += torch.sum(predict == z)
     acc = correctNum / totalNum
     print("Accuracy: {}".format(acc))
     return acc
