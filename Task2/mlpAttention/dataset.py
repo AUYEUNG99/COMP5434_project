@@ -26,6 +26,7 @@ class HousepriceDataset(Dataset):
 
         return data, city, label
 
+
 class ValidationDataset(Dataset):
     def __init__(self, data, city, label, train_num):
         super(ValidationDataset, self).__init__()
