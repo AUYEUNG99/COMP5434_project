@@ -10,7 +10,7 @@ def readData(fileName):
     return df
 
 
-df = readData("/train_attrs.csv")
+df = readData("/train_data.csv")
 
 # print(df)
 sns.set_context({"figure.figsize": (8, 8)})
