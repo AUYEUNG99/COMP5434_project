@@ -37,20 +37,20 @@ def classify(totalCost):
         return 4
 
 
-def process(df, item, top):
-    list_of_items = list(df[item].apply(
-        lambda x: [i['name'] for i in x] if x != {} else []).values)
-    df.loc[:, 'num_' + item] = df[item].apply(
-        lambda x: len(x) if x != {} else 0)
-    df.loc[:, 'all_' + item] = df[item].apply(
-        lambda x: ' '.join(sorted([i['name'] for i in x])) if x != {} else '')
-    top_items = [m[0] for m in Counter(
-        [i for j in list_of_items for i in j]).most_common(top)]
-    for g in top_items:
-        df.loc[:, item + '_' +
-               g] = df.loc[:, 'all_' + item].apply(lambda x: 1 if g in x else 0)
-    df = df.drop(['all_' + item], axis=1)
-    return df
+# def process(df, item, top):
+#     list_of_items = list(df[item].apply(
+#         lambda x: [i['name'] for i in x] if x != {} else []).values)
+#     df.loc[:, 'num_' + item] = df[item].apply(
+#         lambda x: len(x) if x != {} else 0)
+#     df.loc[:, 'all_' + item] = df[item].apply(
+#         lambda x: ' '.join(sorted([i['name'] for i in x])) if x != {} else '')
+#     top_items = [m[0] for m in Counter(
+#         [i for j in list_of_items for i in j]).most_common(top)]
+#     for g in top_items:
+#         df.loc[:, item + '_' +
+#                g] = df.loc[:, 'all_' + item].apply(lambda x: 1 if g in x else 0)
+#     df = df.drop(['all_' + item], axis=1)
+#     return df
 
 
 if __name__ == "__main__":
@@ -69,7 +69,18 @@ if __name__ == "__main__":
     # trainData.loc[trainData['basement space'] != 0, 'basement'] = 1
     trainData.loc[trainData['decoration year'] == 0,
                   'decoration year'] = trainData['building year']
-
+    trainData.loc[trainData['decoration year'] < trainData['building year'],
+                  'decoration year'] = trainData['building year']
+    trainData['house_age'] = trainData['year'] - trainData['building year']
+    trainData['decorate_age'] = trainData['year'] - \
+        trainData['decoration year']
+    trainData['space_ratio'] = trainData['aboveground space '] / \
+        trainData['residence space']
+    trainData['room_space'] = trainData['residence space'] / \
+        (trainData['number of rooms'] + 1)
+    # trainData['second_sell'] = 0
+    # trainData.loc[trainData.duplicated(
+    #     ['district']) == True, 'second_sell'] = 1
     trainData['median_rank_zip code'] = trainData.groupby(
         'zip code')['price range'].transform('median')
     trainData['median_rank_city'] = trainData.groupby(
@@ -78,12 +89,11 @@ if __name__ == "__main__":
         'zip code')['price range'].transform('mean')
     trainData['mean_rank_city'] = trainData.groupby(
         'city')['price range'].transform('mean')
-
-    oneHotColumns = ['zip code','city']
+    oneHotColumns = []
     dum = pd.get_dummies(trainData,
                          columns=oneHotColumns, drop_first=True)
-    dropColumns = [  'district',  'region', 'year', 'month', 'day',
-                   'building year', 'unit price of residence space', 'unit price of building space', 'total cost']
+    dropColumns = ['waterfront', 'zip code', 'city', 'district',  'region', 'year', 'month', 'day', 'date', 'decoration year',
+                   'basement space', 'aboveground space ', 'building year', 'unit price of residence space', 'unit price of building space', 'total cost']
     dum = dum.drop(
         dropColumns, axis=1)
     trainData = trainData.drop(
@@ -93,15 +103,16 @@ if __name__ == "__main__":
 
     trainData = trainData.merge(dum, how="left")
 
+    # trainData = trainData.drop(trainData.index[0], axis=1)
     # trainData[['number of rooms', 'security level of the community', 'residence space', 'building space', 'noise level',
     #            'view', 'air quality level', 'aboveground space ', 'basement space', 'exchange rate']].apply(max_min_scaler)
     trainData.to_csv(os.path.dirname(
-        __file__)+"/train_data.csv")
+        __file__)+"/train_data.csv", index=False)
     # trainData['price range'] = trainData['price range'].astype('category')
 
     dataX = trainData.drop(['price range'], axis=1)
-    # preprocess = MinMaxScaler()
-    # dataX = preprocess.fit_transform(dataX)
+    preprocess = MinMaxScaler()
+    dataX = preprocess.fit_transform(dataX)
     # preprocess = MaxAbsScaler()
     # dataX = preprocess.fit_transform(dataX)
     dataY = trainData['price range']
@@ -109,8 +120,8 @@ if __name__ == "__main__":
     trainX, testX, trainY, testY = train_test_split(
         dataX, dataY, test_size=0.3, shuffle=True)
     model = CatBoostClassifier(iterations=5000,
-                               depth=5,
-                               learning_rate=0.02,
+                               depth=7,
+                               learning_rate=0.01,
                                loss_function='MultiClass',
                                logging_level='Verbose',
                                random_seed=2023)
