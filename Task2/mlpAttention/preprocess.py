@@ -8,6 +8,7 @@ class DataProcess:
         self.data = None
         self.df = None
         self.cities = None
+        self.zipcodes = None
         self.labels = None
         self.total_cost = None
         self.fp = filepath
@@ -23,10 +24,11 @@ class DataProcess:
         :return:
         """
         self.cities = self.df["city"]
+        self.zipcodes = self.df["zip code"]
         self.total_cost = self.df['total cost']
         self.df = self.df.drop(columns=self.unused)
 
-    def encode(self, normalize:bool):
+    def encode(self, normalize: bool):
         """
         1. for date attribute : extract month as feature
         2. for city attribute : encoded through nn.Embedding, but first we need to convert them to numeric values
@@ -37,12 +39,11 @@ class DataProcess:
 
         # for each row in 'date' attribute, split the string and get the second value(as integer) which is month
         if 'date' in self.df.columns:
-          self.df['date'] = self.df['date'].apply(lambda x: int(x.split('/')[1]))
-          # self.df['Month'] = self.df['date'].apply(lambda x: int(x.split('/')[1]))
-          # self.df.drop(columns=['date'])
+            self.df['date'] = self.df['date'].apply(lambda x: int(x.split('/')[1]))
 
         le = preprocessing.LabelEncoder()
         self.cities = le.fit_transform(self.cities)
+        self.zipcodes = le.fit_transform(self.zipcodes)
 
         def classify(totalCost):
             if totalCost < 300000:
@@ -66,11 +67,11 @@ class DataProcess:
         if normalize:
             self.data = preprocessing.normalize(self.data, axis=0)
 
-    def getdata(self, normalize:bool):
+    def getdata(self, normalize: bool):
         """
         :return:  Normalized training data, city attribute which needs to be embedded, labels
         """
         self.read_data()
         self.filter()
         self.encode(normalize)
-        return self.data, self.cities, self.labels
+        return self.data, self.cities, self.zipcodes, self.labels
