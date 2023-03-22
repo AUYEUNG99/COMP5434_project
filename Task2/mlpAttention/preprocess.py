@@ -8,7 +8,6 @@ class DataProcess:
         self.data = None
         self.df = None
         self.cities = None
-        self.zipcodes = None
         self.labels = None
         self.total_cost = None
         self.fp = filepath
@@ -24,7 +23,6 @@ class DataProcess:
         :return:
         """
         self.cities = self.df["city"]
-        self.zipcodes = self.df['zip code']
         self.total_cost = self.df['total cost']
         self.df = self.df.drop(columns=self.unused)
 
@@ -45,7 +43,6 @@ class DataProcess:
 
         le = preprocessing.LabelEncoder()
         self.cities = le.fit_transform(self.cities)
-        self.zipcodes = le.fit_transform(self.zipcodes)
 
         def classify(totalCost):
             if totalCost < 300000:
@@ -76,4 +73,4 @@ class DataProcess:
         self.read_data()
         self.filter()
         self.encode(normalize)
-        return self.data, self.cities, self.zipcodes, self.labels
+        return self.data, self.cities, self.labels
