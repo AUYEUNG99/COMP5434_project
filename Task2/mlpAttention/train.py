@@ -13,18 +13,19 @@ def train(dataloader, model, testloader, train_loss_list, train_acc_list, test_l
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     # scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.1)
-    epochs = 1000
+    epochs = 10000
     best_acc = 0
     for epoch in range(epochs):
-        for i, (x, y, z) in enumerate(dataloader):
+        for i, (x, y, z, w) in enumerate(dataloader):
             x = x.to(device)
             y = y.to(device)
             # print(y.shape)
             z = z.to(device)
-            predict = model(x, y)  # output shape is [Batch, num, classes]
+            w = w.to(device)
+            predict = model(x, y, z)  # output shape is [Batch, num, classes]
             predict = torch.permute(predict, [0, 2, 1])
             optimizer.zero_grad()
-            loss = criterion(predict, z)
+            loss = criterion(predict, w)
             loss.backward()
             optimizer.step()
             if i % 10 == 0:
@@ -56,13 +57,14 @@ def eval(model, testloader, train: bool):
     criterion = nn.CrossEntropyLoss()
     losses = 0.0
     with torch.no_grad():
-        for i, (x, y, z) in enumerate(testloader):
+        for i, (x, y, z, w) in enumerate(testloader):
             x = x.to(device)
             y = y.to(device)
             z = z.to(device)
-            predict = model(x, y)  # [Batch, sequence_len, classes]
+            w = w.to(device)
+            predict = model(x, y, z)  # [Batch, sequence_len, classes]
             predicts = torch.permute(predict, [0, 2, 1])
-            loss = criterion(predicts, z)
+            loss = criterion(predicts, w)
             losses += loss.item()
             '''
             for j in range(x.shape[0]):
@@ -74,7 +76,7 @@ def eval(model, testloader, train: bool):
             '''
             totalNum += x.shape[0] * x.shape[1]
             predict = torch.argmax(predict, dim=-1)
-            correctNum += torch.sum(predict == z)
+            correctNum += torch.sum(predict == w)
     acc = correctNum / totalNum
     losses /= len(testloader)
     # print(totalNum)
