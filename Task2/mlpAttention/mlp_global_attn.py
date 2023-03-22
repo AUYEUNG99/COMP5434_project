@@ -36,7 +36,7 @@ class Attention(nn.Module):
 
 
 class DenseNet(nn.Module):
-    def __init__(self, d_model, embed_dim, hidden_dim, city_num, zip_num, num_classes=4):
+    def __init__(self, d_model, embed_dim, hidden_dim, city_num, num_classes=4):
         """
         :param d_model:        original model dimension before embedding for cities
         :param embed_dim:      embedding dim for cities (district)
@@ -48,9 +48,8 @@ class DenseNet(nn.Module):
         self.hidden = hidden_dim
         self.d_model = d_model
         self.city_embed = nn.Embedding(city_num, embed_dim)
-        self.zip_embed = nn.Embedding(zip_num, embed_dim)
 
-        self.fc1 = nn.Linear(embed_dim * 2 + d_model, 2 * hidden_dim)
+        self.fc1 = nn.Linear(embed_dim + d_model, 2 * hidden_dim)
         self.attn1 = Attention(2 * hidden_dim, 2 * hidden_dim)
         self.bn1 = nn.BatchNorm1d(2 * hidden_dim)
 
@@ -68,7 +67,7 @@ class DenseNet(nn.Module):
             nn.Linear(hidden_dim, num_classes)
         )
 
-    def forward(self, x, cities, zipcodes):
+    def forward(self, x, cities):
         """
         :param x:            house data input except cities (zipcode & district are abandoned)      [Batch, num, dim]
         :param cities:       numeric value of original city attribute                               [Batch, num, embed]
@@ -82,8 +81,7 @@ class DenseNet(nn.Module):
         """
 
         city_embedding = self.city_embed(cities)
-        zipcode_embedding = self.zip_embed(zipcodes)
-        features = torch.concat((x, city_embedding, zipcode_embedding), dim=-1)  # [Batch, num, dim + embed]
+        features = torch.concat((x, city_embedding), dim=-1)  # [Batch, num, dim + embed]
         f1 = self.fc1(features)
         attn1 = self.attn1(f1)
         # attn1 = torch.permute(f1, [0, 2, 1])
@@ -109,3 +107,4 @@ class DenseNet(nn.Module):
 
         output = self.mlp_head(f4)
         return F.softmax(output, dim=-1)
+
