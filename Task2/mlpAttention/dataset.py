@@ -30,11 +30,12 @@ class HousepriceDataset_V1(Dataset):
 
 
 class HousepriceDataset_V2(Dataset):
-    def __init__(self, data, city, label, train_num):
+    def __init__(self, data, city, label, zipcodes, train_num):
         super(HousepriceDataset_V2, self).__init__()
         self.data = data
         self.city = city
         self.label = label
+        self.zipcodes = zipcodes
         self.num = train_num
 
     def __len__(self):
@@ -50,5 +51,5 @@ class HousepriceDataset_V2(Dataset):
         data = torch.Tensor(self.data[index * self.num:index * self.num + self.num])
         city = torch.tensor(self.city[index * self.num:index * self.num + self.num], dtype=torch.int)
         label = torch.tensor(self.label[index * self.num:index * self.num + self.num], dtype=torch.long)
-
-        return data, city, label
+        zipcodes = torch.tensor(self.zipcodes[index * self.num:index * self.num + self.num], dtype=torch.int)
+        return data, city, zipcodes, label
