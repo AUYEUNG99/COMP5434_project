@@ -20,15 +20,16 @@ import csv
 from sklearn import preprocessing
 from Alexnet import AlexNet
 from resnet import ResNet18
-'''
 
-data = DataProcess("./train_data_final.csv", unused_attrs=['district', 'city', 'zip code', 'region',
+
+data = DataProcess("./train_data21.csv", unused_attrs=['district', 'city', 'zip code', 'region',
                                                                  'unit price of residence space',
-                                                                 'unit price of building space', 'total cost', ])
+                                                                 'unit price of building space','total cost' ])
 
 data.getdata(normalize=True)
-'''
+
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 
 class CSVDataset():
     def __init__(self,filepath):
@@ -41,10 +42,10 @@ class CSVDataset():
         self.length = len(self.labels)
  
     def __getitem__(self, index):
-        x = self.features[index].cuda()
+        x = self.features[index]#.cuda()
         #x = torch.Tensor(x)
         x = x.reshape(1,4,4)
-        y = self.labels[index].cuda()
+        y = self.labels[index]#.cuda()
         #y = torch.Tensor(y)
         return x, y
  
@@ -89,10 +90,10 @@ class MLPNet(nn.Module):
         return x
 
 import torch.optim as optim
-net = Net().to(device)
+net = AlexNet()#.to(device)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(net.parameters(), lr=0.01)
-epochs = 400
+epochs = 200
 
 def train(net, criterion, optimizer, epochs):
    train_losses = []
@@ -111,7 +112,6 @@ def train(net, criterion, optimizer, epochs):
             optimizer.step()
             running_loss += loss.item()
             _, predicted = torch.max(outputs.data, 1)
-
             total1 += labels.size(0)
             correct1 += (predicted == labels).sum().item()
         train_loss = running_loss / len(trainloader)
