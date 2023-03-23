@@ -4,7 +4,7 @@ from sklearn import preprocessing
 
 
 class DataProcess:
-    def __init__(self, filepath, unused_attrs):
+    def __init__(self, filepath, unused_attrs, train=True):
         self.data = None
         self.df = None
         self.cities = None
@@ -13,6 +13,7 @@ class DataProcess:
         self.total_cost = None
         self.fp = filepath
         self.unused = unused_attrs
+        self.train = train
 
     def read_data(self):
         self.df = pd.read_csv(self.fp)
@@ -25,7 +26,8 @@ class DataProcess:
         """
         self.cities = self.df["city"]
         self.zipcodes = self.df["zip code"]
-        self.total_cost = self.df['total cost']
+        if self.train:
+            self.total_cost = self.df['total cost']
         self.df = self.df.drop(columns=self.unused)
 
     def encode(self, normalize: bool):
@@ -55,9 +57,10 @@ class DataProcess:
             else:
                 return 4
 
-        self.labels = self.total_cost.apply(lambda x: classify(x))
-        self.labels = self.labels.to_numpy(dtype=np.int32)
-        self.labels -= 1
+        if self.train:
+            self.labels = self.total_cost.apply(lambda x: classify(x))
+            self.labels = self.labels.to_numpy(dtype=np.int32)
+            self.labels -= 1
 
         self.data = self.df.to_numpy()
         """
@@ -74,4 +77,7 @@ class DataProcess:
         self.read_data()
         self.filter()
         self.encode(normalize)
-        return self.data, self.cities, self.zipcodes, self.labels
+        if self.train:
+            return self.data, self.cities, self.zipcodes, self.labels
+        else:
+            return self.data, self.cities, self.zipcodes
