@@ -56,11 +56,14 @@ class DataProcess:
                 return 3
             else:
                 return 4
-
+        
         self.labels = self.total_cost.apply(lambda x: classify(x))
         self.labels = self.labels.to_numpy(dtype=np.int32)
         self.labels -= 1
         self.label = self.labels.reshape(4000,1)
+        
+        #self.label = np.array(self.total_cost).reshape(4000,1)
+        
         #self.labels = preprocessing.normalize(self.labels, axis=0)
         #self.attrs = np.hstack((self.df,self.cities,self.zip_code))#, self.district, self.zip_code))
         self.data = self.df.to_numpy()
@@ -73,6 +76,7 @@ class DataProcess:
         self.attrs = np.hstack((self.data,self.cities,self.zip_code))
         self.attrs = pd.DataFrame(self.attrs,columns=header_str)
         self.attrs.to_csv('./train_attrs.csv',header=header_str,index=False)
+        
         self.labels = pd.DataFrame(self.labels,columns=['labels'])
         self.labels.to_csv('./train_labels.csv',header=['labels'],index=False)
         
