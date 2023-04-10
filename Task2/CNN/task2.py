@@ -42,10 +42,10 @@ class CSVDataset():
         self.length = len(self.labels)
  
     def __getitem__(self, index):
-        x = self.features[index]#.cuda()
+        x = self.features[index].cuda()
         #x = torch.Tensor(x)
         x = x.reshape(1,4,4)
-        y = self.labels[index]#.cuda()
+        y = self.labels[index].cuda()
         #y = torch.Tensor(y)
         return x, y
  
@@ -90,21 +90,24 @@ class MLPNet(nn.Module):
         return x
 
 import torch.optim as optim
-net = AlexNet()#.to(device)
+net = AlexNet().to(device)
 criterion = nn.CrossEntropyLoss()
+#optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.9, weight_decay=5e-4)
 optimizer = optim.Adam(net.parameters(), lr=0.01)
 epochs = 200
 
 def train(net, criterion, optimizer, epochs):
    train_losses = []
    test_losses = []
-   with open("record.txt", "w") as f:
+   with open("./net.train/Alexnet/record2.txt", "w") as f:
     for epoch in range(epochs):
         running_loss = 0.0
         total1=0
         correct1=0
+        net.train()
         for i, data in enumerate(trainloader):
             inputs, labels = data
+            inputs, labels = inputs.to(device), labels.to(device)
             optimizer.zero_grad()
             outputs = net(inputs)
             loss = criterion(outputs, labels)
@@ -119,9 +122,12 @@ def train(net, criterion, optimizer, epochs):
         correct = 0
         total = 0
         running_loss = 0.0
+        net.eval()
         with torch.no_grad():
             for data in testloader:
+                #net.eval()
                 images, labels = data
+                images, labels = images.to(device), labels.to(device)
                 outputs = net(images)
                 loss = criterion(outputs, labels)
                 running_loss += loss.item()
@@ -136,7 +142,7 @@ def train(net, criterion, optimizer, epochs):
         f.write('\n')
         f.flush()
         print(f'Epoch {epoch + 1}: train loss = {train_loss:.3f}, test loss = {test_loss:.3f},train accuracy = {100 * correct1 / total1:.3f}%, test accuracy = {100 * correct / total:.3f}%')
-
+        torch.save(net,'./net.train/Alexnet/net2.pkl')
     
     plt.plot(train_losses, label='Training loss')
     plt.plot(test_losses, label='Testing loss')
@@ -146,8 +152,8 @@ def train(net, criterion, optimizer, epochs):
     plt.show()
 
 train(net, criterion, optimizer, epochs)
-torch.save(net,'./net.pkl')
-data = np.loadtxt('./record.txt')
+#torch.save(net,'./net.train/Alexnet/net.pkl')
+data = np.loadtxt('./net.train/Alexnet/record2.txt')
 fig = plt.figure(figsize=(16,9))
 plt.plot(data[:,0],data[:,1],label='Train loss')
 plt.plot(data[:,0],data[:,2],label='Test loss')
